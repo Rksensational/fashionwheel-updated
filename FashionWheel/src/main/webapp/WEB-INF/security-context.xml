@@ -1,0 +1,47 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context.xsd 
+    http://www.springframework.org/schema/security
+   	http://www.springframework.org/schema/security/spring-security.xsd">
+
+
+
+	<context:component-scan base-package="com.FashionWheel"></context:component-scan>
+
+	<!-- <http pattern="/resources/**" security="none"/> <http auto-config="true"> 
+		<intercept-url pattern="/getproducts" access="hasRole('ROLE_ADMIN')"/> <form-login 
+		login-page="/login" /> <logout logout-success-url="/"/> <access-denied-handler 
+		error-page="/access-denied"/> <csrf disabled = "true"/> </http> -->
+
+	<beans:bean id="passwordEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+
+	<!-- We don;t need any security at the time of page loading -->
+	<http pattern="/resources/**" security="none" />
+
+
+
+	<http>
+		<!-- only admin access -->
+		<intercept-url pattern="/manage/**" access="hasAuthority('ADMIN')" />
+		<!-- only user access (who is registered) -->
+		<intercept-url pattern="/cart/**" access="hasAuthority('USER')" />
+		<!-- rest of the world -->
+		<intercept-url pattern="/**" access="permitAll" />
+		<form-login login-page="/login" />
+		<access-denied-handler error-page="/access-denied" />
+	</http>
+
+	<authentication-manager>
+		<authentication-provider>
+			<password-encoder ref="passwordEncoder" />
+			<jdbc-user-service data-source-ref="dataSource"
+				authorities-by-username-query="select email, role from user_detail where email = ?"
+				users-by-username-query="select email, password, enabled from user_detail where email = ?" />
+		</authentication-provider>
+	</authentication-manager>
+</beans:beans>
